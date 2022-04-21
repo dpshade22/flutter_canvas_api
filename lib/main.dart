@@ -45,6 +45,7 @@ class CanvasResponse extends StatefulWidget {
 
 class _CanvasResponseState extends State<CanvasResponse> {
   late Future<List<Course>> _courses;
+  final myController = TextEditingController();
 
   @override
   void initState() {
@@ -54,34 +55,68 @@ class _CanvasResponseState extends State<CanvasResponse> {
   }
 
   @override
+  void dispose() {
+    // Clean up the controller when the widget is removed from the widget tree.
+    // This also removes the _printLatestValue listener.
+    myController.dispose();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
     return Scaffold(
-        body: Card(
-      child: Center(
-        child: FutureBuilder(
-            future: _courses,
-            builder: (context, AsyncSnapshot<List<Course>> snapshot) {
-              switch (snapshot.connectionState) {
-                case ConnectionState.waiting:
-                  return const Text('Loading....');
-                default:
-                  if (snapshot.hasError) {
-                    return Text('Error: ${snapshot.error}');
-                  } else {
-                    return Center(
-                      child: ListView.builder(
-                        itemCount: snapshot.data?.length ?? 0,
-                        itemBuilder: (context, index) {
-                          return ListTile(
-                            title: Text(snapshot.data?[index].name ?? "Error"),
-                          );
-                        },
-                      ),
-                    );
-                  }
+        appBar: AppBar(
+          title: const Center(child: Text("Canvas API")),
+        ),
+        body: Column(
+          children: [
+            Padding(
+              padding: const EdgeInsets.all(16.0),
+              child: TextField(
+                  decoration: const InputDecoration(
+                    border: OutlineInputBorder(),
+                    hintText: 'Enter a search term',
+                  ),
+                  controller: myController,
+                  onSubmitted: (String str) {
+                    setState(() {
+                      _courses =
+                          fetchCanvas("uk.instructure", myController.text);
+                    });
+                  }),
+            ),
+            showCourses()
+          ],
+        ));
+  }
+
+  FutureBuilder<List<Course>> showCourses() {
+    return FutureBuilder(
+        future: _courses,
+        builder: (context, AsyncSnapshot<List<Course>> snapshot) {
+          switch (snapshot.connectionState) {
+            case ConnectionState.waiting:
+              return const Text('Loading....');
+            default:
+              if (snapshot.hasError) {
+                return Text('Error: ${snapshot.error}');
+              } else {
+                return Expanded(
+                  child: ListView.builder(
+                    itemCount: snapshot.data?.length ?? 0,
+                    itemBuilder: (context, index) {
+                      return Card(
+                        child: ListTile(
+                          title: Text(snapshot.data?[index].name ?? "Error"),
+                          trailing: Text(
+                              snapshot.data?[index].id.toString() ?? "Error"),
+                        ),
+                      );
+                    },
+                  ),
+                );
               }
-            }),
-      ),
-    ));
+          }
+        });
   }
 }
