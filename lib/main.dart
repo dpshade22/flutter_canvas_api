@@ -16,13 +16,6 @@ class MyApp extends StatefulWidget {
 class _MyAppState extends State<MyApp> {
   // This widget is the root of your application.
 
-  // @override
-  // void initState() {
-  //   super.initState();
-  //   fetchCanvas("uk.instructure",
-  //       "1139~9rTRlkNDlPabGNTZsEWK1oMndqFjCJzJzKnq2x6VRAu3qE72HZcpdtZZKcR4FUgC");
-  // }
-
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
