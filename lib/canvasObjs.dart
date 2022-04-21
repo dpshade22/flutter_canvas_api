@@ -2,7 +2,11 @@ import 'package:http/http.dart' as http;
 
 import 'dart:convert';
 
-Future<List<Course>> fetchCanvas(schoolTag, canvasKey) async {
+Future<List<Course>> fetchCanvas({schoolTag = "", canvasKey = ""}) async {
+  if (schoolTag == "" && canvasKey == "") {
+    return [];
+  }
+
   var params = {
     "per_page": '200',
     "include": ["concluded"],
@@ -38,12 +42,16 @@ Future<List<Course>> fetchCanvas(schoolTag, canvasKey) async {
     for (var course in courses) {
       print('Name: ${course.name}, ID: ${course.id}');
 
+      for (var assign in course.assignments) {
+        print('Assignment Name: ${assign.name}');
+      }
       // var tempAs = course.assignments.map((assign) => assign.name).toList();
     }
     return courses;
   } else {
     // If the server did not return a 200 OK response,
     // then throw an exception.
+
     throw Exception('Failed to load course');
   }
 }
@@ -51,8 +59,12 @@ Future<List<Course>> fetchCanvas(schoolTag, canvasKey) async {
 Future<void> addAssignments(schoolTag, Course c, canvasKey) async {
   c.assignments = [];
 
-  var courseAssignmnetsUrl =
-      Uri.parse('https://$schoolTag.com/api/v1/courses/${c.id}/assignments');
+  var params = {
+    "bucket": ['future'],
+  };
+
+  var courseAssignmnetsUrl = Uri.https(
+      '$schoolTag.com', '/api/v1/courses/${c.id}/assignments', params);
   var assignmentsRes = await http.get(courseAssignmnetsUrl,
       headers: {"Authorization": "Bearer $canvasKey", "bucket": "future"});
   var assignmentData = jsonDecode(assignmentsRes.body);

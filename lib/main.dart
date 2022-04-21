@@ -50,8 +50,7 @@ class _CanvasResponseState extends State<CanvasResponse> {
   @override
   void initState() {
     super.initState();
-    _courses = fetchCanvas("uk.instructure",
-        "1139~9rTRlkNDlPabGNTZsEWK1oMndqFjCJzJzKnq2x6VRAu3qE72HZcpdtZZKcR4FUgC");
+    _courses = Future.wait([]);
   }
 
   @override
@@ -80,8 +79,9 @@ class _CanvasResponseState extends State<CanvasResponse> {
                   controller: myController,
                   onSubmitted: (String str) {
                     setState(() {
-                      _courses =
-                          fetchCanvas("uk.instructure", myController.text);
+                      _courses = fetchCanvas(
+                          schoolTag: "uk.instructure",
+                          canvasKey: myController.text);
                     });
                   }),
             ),
