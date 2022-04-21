@@ -3,10 +3,18 @@ import 'package:http/http.dart' as http;
 import 'dart:convert';
 
 Future<List<Course>> fetchCanvas(schoolTag, canvasKey) async {
-  var canvasCourseUrl = Uri.parse('https://$schoolTag.com/api/v1/courses/');
-  var r = await http.get(canvasCourseUrl, headers: {
+  var params = {
+    "per_page": '200',
+    "include": ["concluded"],
+    "enrollment_state": ["active"],
+  };
+
+  var header = {
     "Authorization": "Bearer $canvasKey",
-  });
+  };
+
+  var canvasCourseUrl = Uri.https('$schoolTag.com', '/api/v1/courses/', params);
+  var r = await http.get(canvasCourseUrl, headers: header);
 
   // var r =
   //     await http.get(Uri.parse('https://jsonplaceholder.typicode.com/posts/2'));
@@ -18,9 +26,9 @@ Future<List<Course>> fetchCanvas(schoolTag, canvasKey) async {
     for (var course in jsonData) {
       var c = Course.fromJson(course);
       var diff = DateTime.parse(c.startAt).difference(DateTime.now());
-      // if (diff.inDays < -240) {
-      //   continue;
-      // }
+      if (diff.inDays < -240) {
+        continue;
+      }
 
       courses.add(c);
 
@@ -28,11 +36,9 @@ Future<List<Course>> fetchCanvas(schoolTag, canvasKey) async {
     }
 
     for (var course in courses) {
-      print('Name: ${course.name}');
+      print('Name: ${course.name}, ID: ${course.id}');
 
-      var tempAs = course.assignments.map((assign) => assign.name).toList();
-
-      // print('End Date ${course.startAt}');
+      // var tempAs = course.assignments.map((assign) => assign.name).toList();
     }
     return courses;
   } else {
@@ -64,13 +70,22 @@ class Course {
   final int id;
   dynamic startAt;
   dynamic assignments;
+  dynamic enrollState;
 
-  Course(
-      {required this.name, required this.id, this.startAt, this.assignments});
+  Course({
+    required this.name,
+    required this.id,
+    this.startAt,
+    this.assignments,
+    this.enrollState,
+  });
 
   factory Course.fromJson(Map<String, dynamic> json) {
     return Course(
-        name: json['name'], id: json['id'], startAt: json['start_at']);
+        name: json['name'],
+        id: json['id'],
+        startAt: json['start_at'],
+        enrollState: json['enrollment_state']);
   }
 }
 
@@ -83,6 +98,9 @@ class Assignment {
 
   factory Assignment.fromJson(Map<String, dynamic> json) {
     return Assignment(
-        name: json['name'], id: json['id'], dueDate: json['due_at']);
+      name: json['name'],
+      id: json['id'],
+      dueDate: json['due_at'],
+    );
   }
 }
